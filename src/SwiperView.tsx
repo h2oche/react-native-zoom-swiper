@@ -8,7 +8,9 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   GestureResponderEvent,
-  Dimensions
+  PanResponder,
+  Dimensions,
+  PanResponderInstance
 } from 'react-native';
 import ZoomView from "./ZoomView";
 
@@ -43,6 +45,7 @@ export default class SwiperViewComponent extends React.Component<SwiperViewProps
   maxIndex: number;
   curIndex: number;
   start?: { x: number; y: number; };
+
   constructor ( props: SwiperViewProps ) {
     super( props );
     this.state = {
@@ -54,12 +57,11 @@ export default class SwiperViewComponent extends React.Component<SwiperViewProps
   }
 
   private swipeTo ( index: number ) {
-    if ( this.flatListRef === null ) {
-      Alert.alert( "SwiperViewComponent::next", "flatListRef is null" );
-      return;
-    }
+    if ( index >= this.maxIndex ) index = this.maxIndex - 1;
+    else if ( index < 0 ) index = 0;
 
-    this.flatListRef.scrollToIndex( { animated: true, index } );
+    if ( this.flatListRef !== null )
+      this.flatListRef.scrollToIndex( { animated: true, index } );
   }
 
   private renderSwiperItem ( index: number, item: SwiperViewData ) {
@@ -69,50 +71,16 @@ export default class SwiperViewComponent extends React.Component<SwiperViewProps
       swipeTo={ ( index ) => this.swipeTo( index ) } /> );
   }
 
-  private onMove ( event: GestureResponderEvent ) {
-    const { nativeEvent } = event;
-    const { pageX, pageY } = nativeEvent;
 
-    console.log( 'onMove', pageX, pageY );
-
-    if ( this.start === undefined ) {
-      this.start = { x: pageX, y: pageY };
-      console.log( this.start );
-    }
-  }
-
-  private onRelease ( event: GestureResponderEvent ) {
-    const { nativeEvent } = event;
-    const { pageX, pageY } = nativeEvent;
-
-    console.log( 'onRelease', pageX, pageY );
-
-    if ( this.start !== undefined ) {
-      const { x, y } = this.start;
-      const dx = pageX - x;
-      const pagingThresold = Dimensions.get( 'screen' ).width / 3;
-
-      if ( Math.abs( dx ) > pagingThresold ) {
-        if ( dx < 0 ) this.curIndex += 1;
-        else this.curIndex -= 1;
-
-        if ( this.curIndex >= this.maxIndex ) this.curIndex = this.maxIndex - 1;
-        else if ( this.curIndex < 0 ) this.curIndex = 0;
-
-        this.swipeTo( this.curIndex );
-      }
-
-      this.start = undefined;
-    }
-  }
 
   public render () {
     return (
       <View>
         <FlatList
-          onMoveShouldSetResponder={ () => true }
-          onResponderMove={ ( event ) => this.onMove( event ) }
-          onResponderRelease={ ( event ) => this.onRelease( event ) }
+          // onMoveShouldSetResponder={ () => true }
+          // onResponderMove={ ( event ) => this.onMove( event ) }
+          // onResponderRelease={ ( event ) => this.onRelease( event ) }
+          scrollEnabled={ false }
           data={ data }
           renderItem={ ( { item, index } ) => this.renderSwiperItem( index, item ) }
           horizontal={ true }
